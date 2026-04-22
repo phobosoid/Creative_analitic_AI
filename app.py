@@ -6,7 +6,12 @@ from recommendations import generate_design_brief, create_rtf_brief
 
 st.set_page_config(page_title="AI Performance Strategist", layout="wide")
 
-st.title("🎨 AI Performance Creative Strategist")
+st.title("🚀 AI Performance Creative Strategist")
+st.subheader("Интеллектуальный мост между аналитикой и дизайном.")
+st.markdown("""
+Система автоматически выявляет прибыльные связки в данных, генерирует глубокие гипотезы и ТЗ через **GPT-4o**, 
+а также создает визуальные референсы с помощью **Flux**. Превратите хаос из CSV-отчетов в четкую стратегию для масштабирования ROI.
+""")
 st.markdown("---")
 
 st.sidebar.header("Data Source")
