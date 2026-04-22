@@ -1,11 +1,33 @@
-import streamlit as st
+import streamlit as st  # ЭТА СТРОКА ДОЛЖНА БЫТЬ ПЕРВОЙ
 import pandas as pd
 from analytics import perform_analytics
 from generator import generate_abstract_ref
 from recommendations import generate_design_brief, create_rtf_brief
 
-st.set_page_config(page_title="AI Performance Strategist", layout="wide")
+# Установка конфигурации страницы (всегда сразу после импортов)
+st.set_page_config(page_title="Creative AI Agent", layout="wide")
 
+# --- CUSTOM CSS ДЛЯ АНИМАЦИИ СТРЕЛКИ ВВЕРХ ---
+st.markdown("""
+    <style>
+    @keyframes bounceUp {
+        0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+        40% {transform: translateY(-12px);}
+        60% {transform: translateY(-6px);}
+    }
+    .arrow-pointer-up {
+        font-size: 18px;
+        font-weight: bold;
+        color: #28a745;
+        animation: bounceUp 2s infinite;
+        display: block;
+        margin-top: 10px;
+        text-align: left;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- ШАПКА ---
 st.title("🚀 AI Performance Creative Strategist")
 st.subheader("Интеллектуальный мост между аналитикой и дизайном.")
 st.markdown("""
@@ -14,40 +36,15 @@ st.markdown("""
 """)
 st.markdown("---")
 
+# --- SIDEBAR ---
 st.sidebar.header("Data Source")
 uploaded_file = st.sidebar.file_uploader("Upload CSV", type="csv")
 
+if not uploaded_file:
+    st.sidebar.markdown('<div class="arrow-pointer-up">⬆️ Загрузи файл выше</div>', unsafe_allow_html=True)
+    st.info("👈 Чтобы начать анализ, загрузи CSV-файл в боковой панели.")
+
+# --- ЛОГИКА ПРИ ЗАГРУЗКЕ ---
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
-    stats_df, summary_text, top_params = perform_analytics(df)
-
-    col_left, col_right = st.columns([1, 1], gap="large")
-
-    with col_left:
-        st.subheader("🤖 AI Generation: Strategy & Brief")
-
-        # Индикатор загрузки для OpenAI
-        with st.spinner("AI анализирует данные и пишет ТЗ..."):
-            brief = generate_design_brief(top_params)
-            st.markdown(brief)
-
-        st.write("---")
-        dl_col1, dl_col2 = st.columns(2)
-        with dl_col1:
-            st.download_button("Download TXT", brief, "brief.txt", "text/plain")
-        with dl_col2:
-            rtf_data = create_rtf_brief(brief)
-            st.download_button("Download RTF", rtf_data, "brief.rtf", "application/rtf")
-
-    with col_right:
-        st.subheader("🖼 AI Generation: Visual Reference")
-        if st.button("🚀 Generate Visual", use_container_width=True):
-            with st.spinner("Flux drawing..."):
-                img_url = generate_abstract_ref(top_params)
-                if "Error" in img_url:
-                    st.error(img_url)
-                else:
-                    st.image(img_url, use_container_width=True)
-                    st.success("Reference ready!")
-else:
-    st.info("Please upload a CSV file to begin.")
+    # ... твой остальной код ...
