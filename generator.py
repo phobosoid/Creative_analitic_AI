@@ -12,17 +12,16 @@ def generate_abstract_ref(params):
     if not api_token:
         return "Error: API Token не найден."
 
-    roi = params['ROI']
-    # Проверка на аномалию (темный фон + нет лица + высокий ROI)
-    is_anomaly = roi > 3.0 and params['background'] == 'dark' and params['face'] == 'no'
-
-    if is_anomaly:
-        prompt = (f"Cinematic close-up of a mystical animal with glowing neon eyes, "
-                  f"emerging from deep pitch-black shadows, vibrant electric purple accents, "
-                  f"high contrast, futuristic dark aesthetic, 8k, sharp details --ar 9:16")
+    # Если ROI аномальный и нет лица - генерим животное/маскота
+    if params['ROI'] > 3.0 and params['face'] == 'no':
+        subject = "cybernetic glowing animal, futuristic mascot"
     else:
-        bg_style = "bright high-key lighting" if params['background'] == 'light' else "dark shadows"
-        prompt = f"Abstract digital art, {bg_style}, vibrant colors, graphic design style --ar 9:16"
+        subject = "abstract geometric composition"
+
+    bg = "dark cinematic atmosphere" if params['background'] == 'dark' else "bright minimalist gallery lighting"
+
+    prompt = (f"{subject}, {bg}, {params['color']} palette, {params['dynamics']} movement, "
+              f"high-end graphic design, trendy 3D render, sharp focus, 8k --ar 9:16")
 
     try:
         client = replicate.Client(api_token=api_token)

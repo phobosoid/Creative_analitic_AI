@@ -2,3 +2,4 @@ streamlit
 pandas
 replicate
 python-dotenv
+openai

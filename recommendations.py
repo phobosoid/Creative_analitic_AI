@@ -1,44 +1,61 @@
+import openai
+import os
+import streamlit as st
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 def generate_design_brief(top_params):
     """
-    Формирует ТЗ, адаптирующееся под аномальные показатели ROI.
+    Генерирует уникальное ТЗ, используя OpenAI GPT-4o.
     """
-    style = str(top_params['style']).upper()
-    roi = top_params['ROI']
+    api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
 
-    # Определяем, является ли случай аномальным (Животные/Темный фон)
-    is_anomaly = roi > 3.0 and top_params['background'] == 'dark' and top_params['face'] == 'no'
+    if not api_key:
+        return "⚠️ Ошибка: Добавьте OPENAI_API_KEY в .env или Secrets."
 
-    if is_anomaly:
-        brief = f"""### 🚨 ОБНАРУЖЕНА АНОМАЛИЯ (ROI: {roi:.2f})
+    client = openai.OpenAI(api_key=api_key)
 
-**1. Креативная стратегия: "Ночной хищник"**
-Данные показывают взрывной рост на связке, которая противоречит стандартам. Вместо лиц людей мы используем **силуэты животных**.
+    # Контекст из данных
+    context = (
+        f"Стиль: {top_params['style']}, ROI: {top_params['ROI']:.2f}, "
+        f"Фон: {top_params['background']}, Динамика: {top_params['dynamics']}, "
+        f"Цвета: {top_params['color']}, Лицо: {top_params.get('face', 'no')}."
+    )
 
-**2. Визуальные инструкции:**
-* **Центральный объект:** Крупный план животного (волк, леопард или мистическое существо). Акцент на светящиеся глаза.
-* **Фон:** Глубокий черный или темно-синий (Dark). Никаких светлых деталей.
-* **Цвета:** Кислотные/неоновые акценты (зеленый или фиолетовый) на фоне общей темноты.
-* **Динамика:** Рваный монтаж, эффект появления из тени.
+    prompt = f"""
+    Ты — ведущий креативный стратег в performance-маркетинге. 
+    Твоя задача: на основе данных аналитики написать детальное и вдохновляющее ТЗ для дизайнера.
 
-**3. Технические требования:**
-* Формат: 9:16.
-* Лицо: КАТЕГОРИЧЕСКИ БЕЗ ЛИЦ. Только животные.
+    Данные лучшей связки: {context}
 
-**4. Почему это сработает:**
-Этот паттерн сейчас ломает баннерную слепоту лучше, чем стандартный UGC.
-"""
-    else:
-        # Стандартное ТЗ (если аномалии нет)
-        brief = f"""### 📝 Детальное ТЗ для дизайна
-**1. Концепция:** Стиль {style}. ROI: {roi:.2f}.
-**2. Визуал:** Фон {top_params['background']}, цвета {top_params['color']}.
-**3. Динамика:** {top_params['dynamics']}.
-"""
-    return brief
+    В ТЗ обязательно должно быть:
+    1. ГИПОТЕЗА: Почему именно эти параметры (например, {top_params['background']} фон) дали такой ROI?
+    2. ВИЗУАЛЬНЫЙ КОНЦЕПТ: Опиши композицию. Если ROI > 3.0 и лицо=no, предложи использовать необычного персонажа (животное, робот, маскот).
+    3. ТЕХНИЧЕСКИЕ ДЕТАЛИ: Освещение, шрифты, акценты.
+    4. ПРИЗЫВ К ДЕЙСТВИЮ: Как выделить оффер.
+
+    Пиши профессионально, структурированно, в стиле Jira/Notion. Используй Markdown.
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Ты эксперт по генерации рекламных стратегий."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Ошибка AI-генерации: {e}"
 
 
 def create_rtf_brief(text):
-    clean_text = text.replace("### ", "").replace("**", "").replace("* ", "- ")
+    # Упрощенная конвертация для RTF
+    clean_text = text.replace("#", "").replace("*", "").replace("`", "")
     rtf_header = r"{\rtf1\ansi\deff0 {\fonttbl {\f0 Arial;}} \f0\fs24 "
     rtf_footer = r"}"
     rtf_body = clean_text.replace("\n", "\\par ")
